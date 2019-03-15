@@ -22,7 +22,11 @@ public class Homework02 {
   @Test
   public void concatenateChars() {
     //TODO: create your realization with lambda
-    Function<Character[], String> charConcatenator = null;
+    Function<Character[], String> charConcatenator = (arr) ->
+            Arrays.stream(arr)
+                    .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                    .toString()
+            ;
 
     String result_1 = charConcatenator.apply(new Character[]{'a', 'b', 'c'});
     String result_2 = charConcatenator.apply(new Character[]{'H', 'e', 'l', 'l', 'o'});
@@ -35,8 +39,7 @@ public class Homework02 {
 
   @Test
   public void reversedWord() {
-    //TODO: create your realization with lambda
-    Predicate<String> isReversedStringTheSame = null;
+    Predicate<String> isReversedStringTheSame = word -> word.equals(new StringBuilder(word).reverse().toString());
 
     boolean result_1 = isReversedStringTheSame.test("abccba");
     boolean result_2 = isReversedStringTheSame.test("level");
@@ -73,11 +76,9 @@ public class Homework02 {
 
   @Test
   public void transformAndProvideSumWithCounter() {
-    //TODO: create your realization with lambda
-    Function<String, Integer> transform = null;
+    Function<String, Integer> transform = Integer::valueOf;
 
-    //TODO: create your realization with lambda
-    BinaryOperator<Integer> increment = null;
+    BinaryOperator<Integer> increment = (firstNumber,secondNumber) -> firstNumber+secondNumber;
 
     Counter sut_1 = new Counter(transform, increment);
     Counter sut_2 = new Counter(transform, increment);
@@ -94,8 +95,7 @@ public class Homework02 {
     final PrintStream original = System.out;
     System.setOut(new PrintStream(outContent));
 
-    //TODO: method must print parameters in System.out
-    Consumer<Object> printHelloInSystemOut = null;
+    Consumer<Object> printHelloInSystemOut = System.out::print;
 
     printHelloInSystemOut.accept("hello");
     assertEquals("hello", outContent.toString());
@@ -116,14 +116,11 @@ public class Homework02 {
   @Test
   public void testPredicateScenario() {
 
-    //TODO: create your realization with lambda
-    Predicate<String> isStartsWithXX = null;
+    Predicate<String> isStartsWithXX = str -> str.startsWith("XX");
 
-    //TODO: create your realization with lambda
-    Predicate<String> isEndWithZZZ = isStartsWithXX.and(null);
+    Predicate<String> isEndWithZZZ = isStartsWithXX.and(str -> str.endsWith("ZZZ"));
 
-    //TODO: create your realization with lambda
-    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(null);
+    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(str -> str.contains("*****"));
 
     assertFalse(haveFiveStarsInRow.test("Xnot_rightZZZ"));
     assertTrue(haveFiveStarsInRow.test("XXsuperduperZZZ"));
@@ -136,8 +133,7 @@ public class Homework02 {
   public void chainOfFunctionInvocation() {
     List<Integer> numbers = new ArrayList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
 
-    //TODO: create realization with lambda
-    Predicate<Integer> isEven = null;
+    Predicate<Integer> isEven = number -> number % 2 == 0;
 
     List<Integer> evenNumbersList = new ArrayList<>();
 
