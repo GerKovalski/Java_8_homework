@@ -22,7 +22,11 @@ public class Homework02 {
   @Test
   public void concatenateChars() {
     //TODO: create your realization with lambda
-    Function<Character[], String> charConcatenator = null;
+    Function<Character[], String> charConcatenator = characters -> {
+      StringBuilder sb = new StringBuilder();
+      Arrays.stream(characters).forEach(sb::append);
+      return sb.toString();
+    };
 
     String result_1 = charConcatenator.apply(new Character[]{'a', 'b', 'c'});
     String result_2 = charConcatenator.apply(new Character[]{'H', 'e', 'l', 'l', 'o'});
@@ -36,7 +40,7 @@ public class Homework02 {
   @Test
   public void reversedWord() {
     //TODO: create your realization with lambda
-    Predicate<String> isReversedStringTheSame = null;
+    Predicate<String> isReversedStringTheSame = string -> string.equals(new StringBuilder(string).reverse().toString());
 
     boolean result_1 = isReversedStringTheSame.test("abccba");
     boolean result_2 = isReversedStringTheSame.test("level");
@@ -74,10 +78,10 @@ public class Homework02 {
   @Test
   public void transformAndProvideSumWithCounter() {
     //TODO: create your realization with lambda
-    Function<String, Integer> transform = null;
+    Function<String, Integer> transform = Integer::parseInt;
 
     //TODO: create your realization with lambda
-    BinaryOperator<Integer> increment = null;
+    BinaryOperator<Integer> increment = (num1, num2) -> num1 + num2;
 
     Counter sut_1 = new Counter(transform, increment);
     Counter sut_2 = new Counter(transform, increment);
@@ -95,7 +99,7 @@ public class Homework02 {
     System.setOut(new PrintStream(outContent));
 
     //TODO: method must print parameters in System.out
-    Consumer<Object> printHelloInSystemOut = null;
+    Consumer<Object> printHelloInSystemOut = System.out::print;
 
     printHelloInSystemOut.accept("hello");
     assertEquals("hello", outContent.toString());
@@ -117,13 +121,13 @@ public class Homework02 {
   public void testPredicateScenario() {
 
     //TODO: create your realization with lambda
-    Predicate<String> isStartsWithXX = null;
+    Predicate<String> isStartsWithXX = string -> string.startsWith("XX");
 
     //TODO: create your realization with lambda
-    Predicate<String> isEndWithZZZ = isStartsWithXX.and(null);
+    Predicate<String> isEndWithZZZ = isStartsWithXX.and(string -> string.endsWith("ZZZ"));
 
     //TODO: create your realization with lambda
-    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(null);
+    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(string -> string.contains("*****"));
 
     assertFalse(haveFiveStarsInRow.test("Xnot_rightZZZ"));
     assertTrue(haveFiveStarsInRow.test("XXsuperduperZZZ"));
@@ -137,7 +141,7 @@ public class Homework02 {
     List<Integer> numbers = new ArrayList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
 
     //TODO: create realization with lambda
-    Predicate<Integer> isEven = null;
+    Predicate<Integer> isEven = integer -> ((integer & 1) == 0);
 
     List<Integer> evenNumbersList = new ArrayList<>();
 
@@ -150,14 +154,25 @@ public class Homework02 {
     assertTrue(evenNumbersList.containsAll(Arrays.asList(2,4,6,8,10)));
 
     //TODO: create realization with lambda
-    Function<List<Integer>, List<Integer>> sumWithNextElement = null;
+    Function<List<Integer>, List<Integer>> sumWithNextElement = list1 -> {
+      List<Integer> result = new ArrayList<>();
+      for (int i = 0; i < list1.size() ; i++) {
+        if(i == list1.size()-1){
+          result.add(list1.get(0) + list1.get(i));
+        }
+        else {
+          result.add(list1.get(i) + list1.get(i + 1));
+        }
+      }
+      return result;
+    };
 
     List<Integer> newNumbers = sumWithNextElement.apply(evenNumbersList);
 
     assertTrue(newNumbers.containsAll(Arrays.asList(6,10,14,18,12)));
 
     //TODO: create realization with lambda
-    Predicate<Integer> moreThanThirteen = null;
+    Predicate<Integer> moreThanThirteen = number -> number > 13;
 
     List<Integer> numbersMoreThanFifteen = new ArrayList<>();
 
@@ -172,18 +187,18 @@ public class Homework02 {
 
   //TODO: implement predicate with lambda
   private static Predicate<String> lengthMoreThanSeven() {
-    return null;
+    return string -> string.length() > 7;
   }
 
   //TODO: implement, if predicate correct "str" => "strstr" if not "str..."
   private static Function<Predicate<String>, Function<String, String>> doubleStringOrAddThreeDots() {
-    return null;
+    return (Predicate<String> pred) -> string -> pred.test(string)? string.concat(string): string.concat("...");
   }
 
   //TODO: implement, return word length from function
   private static Function<String, Integer> lengthOfWord(
       Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
-    return null;
+    return (String string) -> doubledOrWithThreeDots.apply(lengthMoreThanSeven()).apply(string).length();
   }
 
   @Test
@@ -218,7 +233,7 @@ public class Homework02 {
 
     //TODO: initialize "lazy" using "supplier" only one time
     public int getLazy() {
-      return 0;
+      return  lazy = supplier.get();
     }
   }
 
@@ -226,9 +241,9 @@ public class Homework02 {
   public void lazyLoading() {
 
     //TODO: provide supplier in constructor with lambda
-    LazyProperty sut = new LazyProperty(null);
-    LazyProperty sut_2 = new LazyProperty(null);
-    LazyProperty sut_3 = new LazyProperty(null);
+    LazyProperty sut = new LazyProperty(() -> 1);
+    LazyProperty sut_2 = new LazyProperty(() -> 2);
+    LazyProperty sut_3 = new LazyProperty(() -> 3);
 
     assertNull(sut.lazy);
     assertNull(sut_2.lazy);
@@ -246,9 +261,9 @@ public class Homework02 {
   @Test
   public void andThenTest() {
     //TODO: realize with lambda
-    Function<Integer, Integer> sumIntegerOnSix = null;
-    Function<Integer, Integer> thenMinusThree = null;
-    Function<Integer, Integer> afterMultipleOnFive = null;
+    Function<Integer, Integer> sumIntegerOnSix = number -> number + 6;
+    Function<Integer, Integer> thenMinusThree = number -> number - 3;
+    Function<Integer, Integer> afterMultipleOnFive = number -> number * 5;
 
     Integer result = sumIntegerOnSix
         .andThen(thenMinusThree)
