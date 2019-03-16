@@ -3,10 +3,7 @@ package com.make.my.day.hm3;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -100,11 +97,6 @@ public class Homework03 {
   @Test
   public void mapFilterMapTest() {
     IntStream numbers = IntStream.of(1, 7, 4, 6, 3, 13, 2, 6, 8);
-
-    // TODO: 1) increment each element
-    // TODO: 2) filter on even numbers
-    // TODO: 3) each element multiply on 2
-
     int[] result = numbers
             .map(operand -> ++operand)
             .filter(value ->  value % 2 == 0)
@@ -117,19 +109,16 @@ public class Homework03 {
   @Test
   public void sortedByRepeatableChars() {
     List<String> words = Arrays.asList("Privet", "Elevate", "Splendid", "Ssssssuper");
-
-    String[] result = words.stream()
-        // TODO: Add realization
-        .sorted(new Comparator<String>() {
-          @Override
-          public int compare(String o1, String o2) {
-            return 0;
-          }
-        })
+       String[] result = words.stream()
+        .sorted(Comparator.comparingInt((String s) -> {
+            s = s.toLowerCase();
+            Map<Integer, Integer> map1 = s.chars().boxed()
+                    .collect(HashMap::new, (Map<Integer, Integer> map, Integer i) ->
+                            map.put(i, map.containsKey(i) ? map.get(i)+1: 1), Map::putAll);
+            return map1.values().stream().max(Integer::compareTo).get();
+        }).reversed())
         .toArray(String[]::new);
 
-    // TODO: For example "Twitter" and "Hello" -> there 3 "t" chars and 2 "l" chars 3 > 2
-    // TODO: So the first word will be Twitter then Hello
     assertArrayEquals(new String[]{"Ssssssuper", "Elevate", "Splendid", "Privet"}, result);
   }
 
@@ -138,7 +127,7 @@ public class Homework03 {
   public void flatMapCheck() {
     String[] words = new String[]{"Hel", "lo", " won", "der", "ful", " ","world", "!"};
 
-    // TODO: Uncomment and add correct realization of flatMap 
+    // TODO: Uncomment and add correct realization of flatMap
     String bigString = null; /*Arrays.stream(words)
         .flatMap(null)
         .collect(Collectors.joining());
