@@ -21,7 +21,7 @@ public class Homework01 {
 
   @Test
   public void concatenateChars() {
-
+    //TODO: create your realization with lambda
     Test01 sut = chars -> String.copyValueOf(chars);
 
     String result_1 = sut.createMessage(new char[]{'a', 'b', 'c'});
@@ -44,7 +44,7 @@ public class Homework01 {
 
   @Test
   public void isWordPalindrome() {
-
+    //TODO: create your realization with lambda
     Test02 sut = (string -> {
       int length = string.length();
 
