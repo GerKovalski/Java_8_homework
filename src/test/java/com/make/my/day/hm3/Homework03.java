@@ -114,8 +114,8 @@ public class Homework03 {
             s = s.toLowerCase();
             Map<Integer, Integer> map1 = s.chars().boxed()
                     .collect(HashMap::new, (Map<Integer, Integer> map, Integer i) ->
-                            map.put(i, map.containsKey(i) ? map.get(i)+1: 1), Map::putAll);
-            return map1.values().stream().max(Integer::compareTo).get();
+                            map.put(i, map.containsKey(i) ? map.get(i)+1 : 1), Map::putAll);
+            return map1.values().stream().max(Comparator.comparingInt(o -> o)).get();
         }).reversed())
         .toArray(String[]::new);
 
@@ -127,11 +127,10 @@ public class Homework03 {
   public void flatMapCheck() {
     String[] words = new String[]{"Hel", "lo", " won", "der", "ful", " ","world", "!"};
 
-    // TODO: Uncomment and add correct realization of flatMap
-    String bigString = null; /*Arrays.stream(words)
-        .flatMap(null)
+    String bigString = Arrays.stream(words)
+        .flatMap(Stream::of)
         .collect(Collectors.joining());
-        */
+
     assertEquals("Hello wonderful world!", bigString);
   }
 
@@ -139,8 +138,7 @@ public class Homework03 {
   public void uniqueValues() {
     List<Integer> numbers = Arrays.asList(1, 1, 3, 3, 12, 11, 12, 11, 11, 1, 3);
 
-    // TODO: Use numbers.stream()... add realization to get unique values
-    int [] result = null;
+    int [] result = numbers.stream().mapToInt(s->s).distinct().toArray();
 
     assertArrayEquals(new int[]{1, 3, 12, 11}, result);
   }
@@ -148,9 +146,7 @@ public class Homework03 {
   @Test
   public void getSumWithReduce() {
     List<Integer> numbers = Arrays.asList(4,4,2,2,8,10);
-    Integer result = numbers.stream()
-        // TODO: Add realization
-        .reduce(0, null);
+    Integer result = numbers.stream().reduce(0, (i1, i2) -> i1 + i2);
 
     assertEquals(30, result.intValue());
   }
