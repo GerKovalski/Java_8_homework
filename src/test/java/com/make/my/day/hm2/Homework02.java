@@ -21,12 +21,14 @@ public class Homework02 {
 
   @Test
   public void concatenateChars() {
-    //TODO: create your realization with lambda
     Function<Character[], String> charConcatenator = (arr) ->
-            Arrays.stream(arr)
-                    .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
-                    .toString()
-            ;
+    {
+      StringBuilder result = new StringBuilder();
+      for(char ch: arr){
+        result.append(ch);
+      }
+      return result.toString();
+    };
 
     String result_1 = charConcatenator.apply(new Character[]{'a', 'b', 'c'});
     String result_2 = charConcatenator.apply(new Character[]{'H', 'e', 'l', 'l', 'o'});
@@ -145,15 +147,23 @@ public class Homework02 {
 
     assertTrue(evenNumbersList.containsAll(Arrays.asList(2,4,6,8,10)));
 
-    //TODO: create realization with lambda
-    Function<List<Integer>, List<Integer>> sumWithNextElement = null;
+    Function<List<Integer>, List<Integer>> sumWithNextElement = (list) -> {
+      List<Integer> sumList = new ArrayList<>();
+      for(int i = 0; i < list.size(); i++){
+        if(i == list.size()-1){
+          sumList.add(list.get(i) + list.get(0));
+        } else {
+          sumList.add(list.get(i) + list.get(i + 1));
+        }
+      }
+      return sumList;
+    };
 
     List<Integer> newNumbers = sumWithNextElement.apply(evenNumbersList);
 
     assertTrue(newNumbers.containsAll(Arrays.asList(6,10,14,18,12)));
 
-    //TODO: create realization with lambda
-    Predicate<Integer> moreThanThirteen = null;
+    Predicate<Integer> moreThanThirteen = someInteger -> someInteger > 13;
 
     List<Integer> numbersMoreThanFifteen = new ArrayList<>();
 
@@ -166,20 +176,17 @@ public class Homework02 {
     assertTrue(numbersMoreThanFifteen.containsAll(Arrays.asList(14,18)));
   }
 
-  //TODO: implement predicate with lambda
   private static Predicate<String> lengthMoreThanSeven() {
-    return null;
+    return str -> str.length() > 7;
   }
 
-  //TODO: implement, if predicate correct "str" => "strstr" if not "str..."
   private static Function<Predicate<String>, Function<String, String>> doubleStringOrAddThreeDots() {
-    return null;
+    return (Predicate<String> pred) -> str -> pred.test(str) ? str.concat(str) : str.concat("...");
   }
 
-  //TODO: implement, return word length from function
   private static Function<String, Integer> lengthOfWord(
       Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
-    return null;
+    return doubleStringOrAddThreeDots().apply(lengthMoreThanSeven()).andThen(s -> s.length());
   }
 
   @Test
@@ -212,19 +219,17 @@ public class Homework02 {
       this.supplier = supplier;
     }
 
-    //TODO: initialize "lazy" using "supplier" only one time
     public int getLazy() {
-      return 0;
+      return lazy = supplier.get();
     }
   }
 
   @Test
   public void lazyLoading() {
 
-    //TODO: provide supplier in constructor with lambda
-    LazyProperty sut = new LazyProperty(null);
-    LazyProperty sut_2 = new LazyProperty(null);
-    LazyProperty sut_3 = new LazyProperty(null);
+    LazyProperty sut = new LazyProperty(() -> 1);
+    LazyProperty sut_2 = new LazyProperty(() -> 2);
+    LazyProperty sut_3 = new LazyProperty(() -> 3);
 
     assertNull(sut.lazy);
     assertNull(sut_2.lazy);
@@ -241,10 +246,9 @@ public class Homework02 {
 
   @Test
   public void andThenTest() {
-    //TODO: realize with lambda
-    Function<Integer, Integer> sumIntegerOnSix = null;
-    Function<Integer, Integer> thenMinusThree = null;
-    Function<Integer, Integer> afterMultipleOnFive = null;
+    Function<Integer, Integer> sumIntegerOnSix = integer -> integer + 6;
+    Function<Integer, Integer> thenMinusThree = integer -> integer - 3;
+    Function<Integer, Integer> afterMultipleOnFive = integer -> integer * 5;
 
     Integer result = sumIntegerOnSix
         .andThen(thenMinusThree)
