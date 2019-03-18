@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import org.junit.Test;
 
 public class Homework02 {
+
   @Test
   public void concatenateChars() {
     Function<Character[], String> charConcatenator = characters -> {
@@ -60,7 +61,7 @@ public class Homework02 {
     private BinaryOperator<Integer> summarizer;
 
     public Counter(Function<String, Integer> transform,
-                   BinaryOperator<Integer> summarizer) {
+        BinaryOperator<Integer> summarizer) {
       this.transform = transform;
       this.summarizer = summarizer;
     }
@@ -97,10 +98,12 @@ public class Homework02 {
 
     printHelloInSystemOut.accept("hello");
     assertEquals("hello", outContent.toString());
+
     outContent.reset();
 
     printHelloInSystemOut.accept("epam");
     assertEquals("epam", outContent.toString());
+
     outContent.reset();
 
     printHelloInSystemOut.accept(12345);
@@ -162,6 +165,7 @@ public class Homework02 {
         numbersMoreThanFifteen.add(num);
       }
     }
+
     assertTrue(numbersMoreThanFifteen.containsAll(Arrays.asList(14,18)));
   }
 
@@ -174,7 +178,7 @@ public class Homework02 {
   }
 
   private static Function<String, Integer> lengthOfWord(
-          Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
+      Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
     return s -> doubledOrWithThreeDots.apply(lengthMoreThanSeven()).apply(s).length();
   }
 
@@ -186,13 +190,13 @@ public class Homework02 {
 
 
     assertEquals("no...", doubleStringOrAddThreeDots()
-            .apply(lengthMoreThanSeven()).apply("no"));
+        .apply(lengthMoreThanSeven()).apply("no"));
 
     assertEquals("wonderfulwonderful", doubleStringOrAddThreeDots()
-            .apply(lengthMoreThanSeven()).apply("wonderful"));
+        .apply(lengthMoreThanSeven()).apply("wonderful"));
 
     assertEquals("welcome...", doubleStringOrAddThreeDots()
-            .apply(lengthMoreThanSeven()).apply("welcome"));
+        .apply(lengthMoreThanSeven()).apply("welcome"));
 
 
     assertEquals(5, lengthOfWord(doubleStringOrAddThreeDots()).apply("no").intValue());
@@ -241,9 +245,9 @@ public class Homework02 {
     Function<Integer, Integer> afterMultipleOnFive = i -> i * 5;
 
     Integer result = sumIntegerOnSix
-            .andThen(thenMinusThree)
-            .andThen(afterMultipleOnFive)
-            .apply(10);
+        .andThen(thenMinusThree)
+        .andThen(afterMultipleOnFive)
+        .apply(10);
 
     assertEquals(65, result.intValue());
   }
