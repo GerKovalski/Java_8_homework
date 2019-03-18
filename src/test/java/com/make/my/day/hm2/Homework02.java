@@ -5,10 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -21,8 +23,13 @@ public class Homework02 {
 
   @Test
   public void concatenateChars() {
-    //TODO: create your realization with lambda
-    Function<Character[], String> charConcatenator = null;
+    Function<Character[], String> charConcatenator = (c)->{
+      StringBuilder result = new StringBuilder();
+      for (Character character : c) {
+        result.append(character);
+      }
+      return result.toString();
+    };
 
     String result_1 = charConcatenator.apply(new Character[]{'a', 'b', 'c'});
     String result_2 = charConcatenator.apply(new Character[]{'H', 'e', 'l', 'l', 'o'});
@@ -35,8 +42,11 @@ public class Homework02 {
 
   @Test
   public void reversedWord() {
-    //TODO: create your realization with lambda
-    Predicate<String> isReversedStringTheSame = null;
+    Predicate<String> isReversedStringTheSame = (s -> {
+      StringBuilder sb = new StringBuilder(s);
+      sb.reverse();
+      return sb.toString().equals(s);
+    });
 
     boolean result_1 = isReversedStringTheSame.test("abccba");
     boolean result_2 = isReversedStringTheSame.test("level");
@@ -73,11 +83,8 @@ public class Homework02 {
 
   @Test
   public void transformAndProvideSumWithCounter() {
-    //TODO: create your realization with lambda
-    Function<String, Integer> transform = null;
-
-    //TODO: create your realization with lambda
-    BinaryOperator<Integer> increment = null;
+    Function<String, Integer> transform = Integer::parseInt;
+    BinaryOperator<Integer> increment = ((i1, i2) -> i1 + i2);
 
     Counter sut_1 = new Counter(transform, increment);
     Counter sut_2 = new Counter(transform, increment);
@@ -94,8 +101,7 @@ public class Homework02 {
     final PrintStream original = System.out;
     System.setOut(new PrintStream(outContent));
 
-    //TODO: method must print parameters in System.out
-    Consumer<Object> printHelloInSystemOut = null;
+    Consumer<Object> printHelloInSystemOut = System.out::print;
 
     printHelloInSystemOut.accept("hello");
     assertEquals("hello", outContent.toString());
@@ -116,14 +122,9 @@ public class Homework02 {
   @Test
   public void testPredicateScenario() {
 
-    //TODO: create your realization with lambda
-    Predicate<String> isStartsWithXX = null;
-
-    //TODO: create your realization with lambda
-    Predicate<String> isEndWithZZZ = isStartsWithXX.and(null);
-
-    //TODO: create your realization with lambda
-    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(null);
+    Predicate<String> isStartsWithXX = (s -> s.startsWith("XX"));
+    Predicate<String> isEndWithZZZ = isStartsWithXX.and(s -> s.endsWith("ZZZ"));
+    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(s -> s.matches("^.*\\*{5}.*$"));
 
     assertFalse(haveFiveStarsInRow.test("Xnot_rightZZZ"));
     assertTrue(haveFiveStarsInRow.test("XXsuperduperZZZ"));
@@ -136,8 +137,7 @@ public class Homework02 {
   public void chainOfFunctionInvocation() {
     List<Integer> numbers = new ArrayList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
 
-    //TODO: create realization with lambda
-    Predicate<Integer> isEven = null;
+    Predicate<Integer> isEven = i -> i%2 == 0;
 
     List<Integer> evenNumbersList = new ArrayList<>();
 
@@ -149,15 +149,26 @@ public class Homework02 {
 
     assertTrue(evenNumbersList.containsAll(Arrays.asList(2,4,6,8,10)));
 
-    //TODO: create realization with lambda
-    Function<List<Integer>, List<Integer>> sumWithNextElement = null;
+    Function<List<Integer>, List<Integer>> sumWithNextElement = (list) -> {
+      List<Integer> result = new LinkedList<>();
+      for (int i = 0; i < list.size();) {
+        int sum = list.get(i++);
+        if (i < list.size()){
+          sum+=list.get(i);
+        }
+        else {
+          sum+=list.get(0);
+        }
+        result.add(sum);
+      }
+      return result;
+    };
 
     List<Integer> newNumbers = sumWithNextElement.apply(evenNumbersList);
 
     assertTrue(newNumbers.containsAll(Arrays.asList(6,10,14,18,12)));
 
-    //TODO: create realization with lambda
-    Predicate<Integer> moreThanThirteen = null;
+    Predicate<Integer> moreThanThirteen = integer -> integer > 13;
 
     List<Integer> numbersMoreThanFifteen = new ArrayList<>();
 
@@ -170,20 +181,17 @@ public class Homework02 {
     assertTrue(numbersMoreThanFifteen.containsAll(Arrays.asList(14,18)));
   }
 
-  //TODO: implement predicate with lambda
   private static Predicate<String> lengthMoreThanSeven() {
-    return null;
+    return s -> s.length() > 7;
   }
 
-  //TODO: implement, if predicate correct "str" => "strstr" if not "str..."
   private static Function<Predicate<String>, Function<String, String>> doubleStringOrAddThreeDots() {
-    return null;
+    return (predicate) -> s -> predicate.test(s) ? s.concat(s) : s.concat("...");
   }
 
-  //TODO: implement, return word length from function
   private static Function<String, Integer> lengthOfWord(
       Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
-    return null;
+    return s -> doubledOrWithThreeDots.apply(lengthMoreThanSeven()).apply(s).length();
   }
 
   @Test
@@ -216,19 +224,20 @@ public class Homework02 {
       this.supplier = supplier;
     }
 
-    //TODO: initialize "lazy" using "supplier" only one time
     public int getLazy() {
-      return 0;
+      if (lazy == null) {
+        lazy = supplier.get();
+      }
+      return lazy;
     }
   }
 
   @Test
   public void lazyLoading() {
 
-    //TODO: provide supplier in constructor with lambda
-    LazyProperty sut = new LazyProperty(null);
-    LazyProperty sut_2 = new LazyProperty(null);
-    LazyProperty sut_3 = new LazyProperty(null);
+    LazyProperty sut = new LazyProperty(() -> 1);
+    LazyProperty sut_2 = new LazyProperty(() -> 2);
+    LazyProperty sut_3 = new LazyProperty(() -> 3);
 
     assertNull(sut.lazy);
     assertNull(sut_2.lazy);
@@ -245,10 +254,9 @@ public class Homework02 {
 
   @Test
   public void andThenTest() {
-    //TODO: realize with lambda
-    Function<Integer, Integer> sumIntegerOnSix = null;
-    Function<Integer, Integer> thenMinusThree = null;
-    Function<Integer, Integer> afterMultipleOnFive = null;
+    Function<Integer, Integer> sumIntegerOnSix = (integer -> integer+6);
+    Function<Integer, Integer> thenMinusThree = (integer -> integer-3);
+    Function<Integer, Integer> afterMultipleOnFive = (integer -> integer*5);
 
     Integer result = sumIntegerOnSix
         .andThen(thenMinusThree)
