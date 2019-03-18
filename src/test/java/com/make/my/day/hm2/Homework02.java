@@ -5,12 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -150,7 +148,7 @@ public class Homework02 {
     assertTrue(evenNumbersList.containsAll(Arrays.asList(2,4,6,8,10)));
 
     Function<List<Integer>, List<Integer>> sumWithNextElement = (list) -> {
-      List<Integer> result = new LinkedList<>();
+      List<Integer> result = new ArrayList<>();
       for (int i = 0; i < list.size();) {
         int sum = list.get(i++);
         if (i < list.size()){
