@@ -42,13 +42,13 @@ public class Homework01 {
   private interface Test02 {
 
     /**
-     * Check reverse word exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
+     * Check if word is palindrome exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
      */
     boolean isReversedStringTheSame(String word);
   }
 
   @Test
-  public void reversedWord() {
+  public void isWordPalindrome() {
     //TODO: create your realization with lambda
 
     Test02 sut = (String str) -> IntStream.range(0,str.length()/2)
@@ -124,7 +124,8 @@ public class Homework01 {
   }
 
   @Test
-  public void sortByNameDistinct() {
+  public void sortByNameLength() {
+
     String[] names = {"Fred", "Maggy", "Suzan", "Loid", "Nir", "Lo", "Stefan", "Maximilian"};
 
     //TODO: Write Comparator realization with lambda expression
