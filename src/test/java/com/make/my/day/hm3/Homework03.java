@@ -4,8 +4,12 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -15,8 +19,7 @@ public class Homework03 {
 
   @Test
   public void createWithBuilder() {
-    // TODO: uncomment and add entities
-    Stream<String> sut = null;// = Stream.<String>builder()
+    Stream<String> sut = Stream.<String>builder().add("Hello").add("Wonderful").add("Word").build();
 
     List<String> resultList = sut.collect(Collectors.toList());
 
@@ -30,17 +33,17 @@ public class Homework03 {
     Stream<Integer> intStream_2 = Stream.of(3, 4);
     Stream<Integer> intStream_3 = Stream.of(5, 6);
 
-    // TODO: Concat streams correctly
-    Stream<Integer> prepared = Stream.concat(null, null);
-    Stream<Integer> result = Stream.concat(null, null);
+      Stream<Integer> prepared = Stream.concat(intStream, intStream_2);
+    Stream<Integer> result = Stream.concat(prepared, intStream_3);
 
     assertArrayEquals(new Integer[]{1, 2, 3, 4, 5, 6}, result.toArray());
   }
 
   @Test
   public void iterateForNineHundredsElements() {
-    // TODO: Add correctly realization of iterate
-    Stream<Integer> stream = Stream.iterate(0, null);
+    Stream<Integer> stream = Stream.iterate(0, integer -> ++integer)
+                                   .skip(100)
+                                   .limit(900);
 
     Integer[] expected = new Integer[900];
     for (int i = 100, j = 0; j < 900; i++, j++) {
@@ -52,8 +55,7 @@ public class Homework03 {
 
   @Test
   public void createWithArraysMethod() {
-    // TODO: Create realization with Arrays.stream
-    IntStream sut = null;
+    IntStream sut = Arrays.stream(new int[]{'t', 'u', 'r', 't', 'l', 'e'});
 
     assertArrayEquals(new int[]{'t', 'u', 'r', 't', 'l', 'e'}, sut.toArray());
   }
@@ -76,8 +78,7 @@ public class Homework03 {
 
   @Test
   public void provideStreamWithGenerate() {
-    // TODO: Generate 3000 agents
-    Stream<Agent> agents = Stream.generate(null);
+    Stream<Agent> agents = Stream.generate(Agent::new).limit(3000);
 
     Agent[] expected = new Agent[3000];
     for (int i = 0; i < 3000; i++) {
@@ -91,8 +92,7 @@ public class Homework03 {
   public void mapWordsReverse() {
     Stream<String> words = Stream.of("We", "all", "do", "our", "best");
 
-    // TODO: Create "map" realization
-    words = words.map(null);
+    words = words.map(s -> new StringBuilder(s).reverse().toString());
 
     assertArrayEquals(
         new String[]{"eW", "lla", "od", "ruo", "tseb"},
@@ -104,12 +104,10 @@ public class Homework03 {
   public void mapFilterMapTest() {
     IntStream numbers = IntStream.of(1, 7, 4, 6, 3, 13, 2, 6, 8);
 
-    // TODO: 1) increment each element
-    // TODO: 2) filter on even numbers
-    // TODO: 3) each element multiply on 2
-
     int[] result = numbers
-        //add here realization
+        .map(i -> ++i)
+        .filter(i -> i%2 == 0)
+        .map(i -> i*2)
         .toArray();
 
     assertArrayEquals(new int[]{4, 16, 8, 28}, result);
@@ -119,13 +117,20 @@ public class Homework03 {
   public void sortedByRepeatableChars() {
     List<String> words = Arrays.asList("Privet", "Elevate", "Splendid", "Ssssssuper");
 
+    Function<String,Integer> f = (s) -> {
+      Map<Character,Integer> chars = s.toLowerCase().chars()
+                                      .mapToObj(c -> (char)c)
+                                      .collect(HashMap::new,(Map<Character,Integer> map, Character c) ->
+                                          map.merge(c, 1, (i1, i2) -> i1 + i2),Map::putAll);
+    return chars.values().stream()
+                .max(Integer::compareTo)
+                .orElse(-1);
+    };
+
     String[] result = words.stream()
-        // TODO: Add realization
-        .sorted(null)
+        .sorted(Comparator.comparingInt(f::apply).reversed())
         .toArray(String[]::new);
 
-    // TODO: For example "Twitter" and "Hello" -> there 3 "t" chars and 2 "l" chars 3 > 2
-    // TODO: So the first word will be Twitter then Hello
     assertArrayEquals(new String[]{"Ssssssuper", "Elevate", "Splendid", "Privet"}, result);
   }
 
@@ -134,11 +139,11 @@ public class Homework03 {
   public void flatMapCheck() {
     String[] words = new String[]{"Hel", "lo", " won", "der", "ful", " ","world", "!"};
 
-    // TODO: Uncomment and add correct realization of flatMap 
-    String bigString = null; /*Arrays.stream(words)
-        .flatMap(null)
-        .collect(Collectors.joining());
-        */
+    String bigString = Arrays.stream(words)
+                             .flatMap(s -> s.chars().mapToObj(c -> (char)c))
+                             .map(Object::toString)
+                             .collect(Collectors.joining());
+
     assertEquals("Hello wonderful world!", bigString);
   }
 
@@ -146,8 +151,10 @@ public class Homework03 {
   public void uniqueValues() {
     List<Integer> numbers = Arrays.asList(1, 1, 3, 3, 12, 11, 12, 11, 11, 1, 3);
 
-    // TODO: Use numbers.stream()... add realization to get unique values
-    int [] result = null;
+    int [] result = numbers.stream()
+                           .distinct()
+                           .mapToInt(i->i)
+                           .toArray();
 
     assertArrayEquals(new int[]{1, 3, 12, 11}, result);
   }
@@ -156,8 +163,7 @@ public class Homework03 {
   public void getSumWithReduce() {
     List<Integer> numbers = Arrays.asList(4,4,2,2,8,10);
     Integer result = numbers.stream()
-        // TODO: Add realization
-        .reduce(0, null);
+        .reduce(0, (i1,i2) -> i1+i2);
 
     assertEquals(30, result.intValue());
   }
