@@ -101,7 +101,7 @@ public class Homework02 {
     System.setOut(new PrintStream(outContent));
 
     //TODO: method must print parameters in System.out
-    Consumer<Object> printHelloInSystemOut = null;
+    Consumer<Object> printHelloInSystemOut = System.out::print;
 
     printHelloInSystemOut.accept("hello");
     assertEquals("hello", outContent.toString());
@@ -123,13 +123,13 @@ public class Homework02 {
   public void testPredicateScenario() {
 
     //TODO: create your realization with lambda
-    Predicate<String> isStartsWithXX = null;
+    Predicate<String> isStartsWithXX = string -> string.startsWith("XX");
 
     //TODO: create your realization with lambda
-    Predicate<String> isEndWithZZZ = isStartsWithXX.and(null);
+    Predicate<String> isEndWithZZZ = isStartsWithXX.and(string -> string.endsWith("ZZZ"));
 
     //TODO: create your realization with lambda
-    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(null);
+    Predicate<String> haveFiveStarsInRow = isEndWithZZZ.or(string -> string.matches(".*\\*{5}.*"));
 
     assertFalse(haveFiveStarsInRow.test("Xnot_rightZZZ"));
     assertTrue(haveFiveStarsInRow.test("XXsuperduperZZZ"));
@@ -143,7 +143,7 @@ public class Homework02 {
     List<Integer> numbers = new ArrayList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
 
     //TODO: create realization with lambda
-    Predicate<Integer> isEven = null;
+    Predicate<Integer> isEven = number -> number % 2 == 0;
 
     List<Integer> evenNumbersList = new ArrayList<>();
 
@@ -156,14 +156,21 @@ public class Homework02 {
     assertTrue(evenNumbersList.containsAll(Arrays.asList(2,4,6,8,10)));
 
     //TODO: create realization with lambda
-    Function<List<Integer>, List<Integer>> sumWithNextElement = null;
+    Function<List<Integer>, List<Integer>> sumWithNextElement = list -> {
+      List<Integer> result = new ArrayList<>();
+      for (int i = 0; i < list.size() - 1; i++) {
+        result.add(list.get(i) + list.get(i + 1));
+      }
+      result.add(list.get(list.size() - 1) + list.get(0));
+      return result;
+    };
 
     List<Integer> newNumbers = sumWithNextElement.apply(evenNumbersList);
 
     assertTrue(newNumbers.containsAll(Arrays.asList(6,10,14,18,12)));
 
     //TODO: create realization with lambda
-    Predicate<Integer> moreThanThirteen = null;
+    Predicate<Integer> moreThanThirteen = number -> number > 13;
 
     List<Integer> numbersMoreThanFifteen = new ArrayList<>();
 
@@ -178,18 +185,18 @@ public class Homework02 {
 
   //TODO: implement predicate with lambda
   private static Predicate<String> lengthMoreThanSeven() {
-    return null;
+    return s -> s.length() > 7;
   }
 
   //TODO: implement, if predicate correct "str" => "strstr" if not "str..."
   private static Function<Predicate<String>, Function<String, String>> doubleStringOrAddThreeDots() {
-    return null;
+    return stringPredicate -> s -> stringPredicate.test(s) ? s += s : s + "... ";
   }
 
   //TODO: implement, return word length from function
   private static Function<String, Integer> lengthOfWord(
       Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
-    return null;
+    return s -> doubledOrWithThreeDots.apply(lengthMoreThanSeven()).apply(s).length();
   }
 
   @Test
@@ -224,7 +231,10 @@ public class Homework02 {
 
     //TODO: initialize "lazy" using "supplier" only one time
     public int getLazy() {
-      return 0;
+      if (lazy == null) {
+        lazy = supplier.get();
+      }
+      return lazy;
     }
   }
 
@@ -232,9 +242,9 @@ public class Homework02 {
   public void lazyLoading() {
 
     //TODO: provide supplier in constructor with lambda
-    LazyProperty sut = new LazyProperty(null);
-    LazyProperty sut_2 = new LazyProperty(null);
-    LazyProperty sut_3 = new LazyProperty(null);
+    LazyProperty sut = new LazyProperty(() -> 1);
+    LazyProperty sut_2 = new LazyProperty(() -> 2);
+    LazyProperty sut_3 = new LazyProperty(() -> 3);
 
     assertNull(sut.lazy);
     assertNull(sut_2.lazy);
@@ -252,9 +262,9 @@ public class Homework02 {
   @Test
   public void andThenTest() {
     //TODO: realize with lambda
-    Function<Integer, Integer> sumIntegerOnSix = null;
-    Function<Integer, Integer> thenMinusThree = null;
-    Function<Integer, Integer> afterMultipleOnFive = null;
+    Function<Integer, Integer> sumIntegerOnSix = number -> number += 6;
+    Function<Integer, Integer> thenMinusThree = number -> number -= 3;
+    Function<Integer, Integer> afterMultipleOnFive = number -> number *= 5;
 
     Integer result = sumIntegerOnSix
         .andThen(thenMinusThree)
