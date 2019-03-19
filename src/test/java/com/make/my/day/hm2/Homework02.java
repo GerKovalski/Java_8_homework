@@ -186,7 +186,7 @@ public class Homework02 {
 
   private static Function<String, Integer> lengthOfWord(
       Function<Predicate<String>, Function<String, String>> doubledOrWithThreeDots) {
-    return doubleStringOrAddThreeDots().apply(lengthMoreThanSeven()).andThen(s -> s.length());
+    return doubleStringOrAddThreeDots().apply(lengthMoreThanSeven()).andThen(String::length);
   }
 
   @Test
@@ -220,7 +220,8 @@ public class Homework02 {
     }
 
     public int getLazy() {
-      return lazy = supplier.get();
+
+      return lazy = (lazy != null) ? lazy : supplier.get();
     }
   }
 
