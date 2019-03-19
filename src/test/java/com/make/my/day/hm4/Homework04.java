@@ -164,8 +164,8 @@ public class Homework04 {
     List<Dog> dogs = Arrays.asList(
         new Dog("Bim", 4), new Dog("Duke", 7), new Dog("Fenrir", 120));
 
-    Map<Boolean, List<Dog>> result = dogs.stream()
-        .collect(Collectors.partitioningBy(dog -> dog.age % 2 == 0));
+    //TODO: make you'r realization
+    Map<Boolean, List<Dog>> result = null;
 
     Map<Boolean, List<Dog>> expected = new HashMap<>();
     expected.put(true, Arrays.asList(new Dog("Bim", 4), new Dog("Fenrir", 120)));
@@ -253,17 +253,8 @@ public class Homework04 {
         new User("sonofsun@epam.com", Role.MANAGER)
     );
 
-    List<UserDTO> result = usersFromDB.stream()
-        .collect(Collectors.collectingAndThen(
-            Collectors.groupingBy(User::getEmail,
-                Collectors.mapping(
-                    User::getRole,
-                    Collectors.toList())),
-            userWithRoles -> Stream.of(userWithRoles).collect(
-                ArrayList::new, (userDTOS, stringSetMap) ->
-                    stringSetMap.forEach((s, roles) -> userDTOS.add(new UserDTO(s, roles)))
-                , ArrayList::addAll)
-        ));
+    //TODO: Make your realization
+    List<UserDTO> result = null;
 
 
     List<UserDTO> expected = Arrays.asList(
