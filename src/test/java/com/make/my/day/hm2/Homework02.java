@@ -233,7 +233,7 @@ public class Homework02 {
 
     //TODO: initialize "lazy" using "supplier" only one time
     public int getLazy() {
-      return  lazy = supplier.get();
+      return  lazy == null ? lazy = supplier.get() : lazy;
     }
   }
 
