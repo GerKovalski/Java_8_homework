@@ -6,8 +6,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.Comparator;
-
 import org.junit.Test;
 
 public class Homework01 {
@@ -23,7 +21,8 @@ public class Homework01 {
 
   @Test
   public void concatenateChars() {
-    Test01 sut = String::valueOf;
+    //TODO: create your realization with lambda
+    Test01 sut = chars -> null;
 
     String result_1 = sut.createMessage(new char[]{'a', 'b', 'c'});
     String result_2 = sut.createMessage(new char[]{'H', 'e', 'l', 'l', 'o'});
@@ -38,14 +37,15 @@ public class Homework01 {
   private interface Test02 {
 
     /**
-     * Check reverse word exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
+     * Check if word is palindrome exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
      */
     boolean isReversedStringTheSame(String word);
   }
 
   @Test
-  public void reversedWord() {
-    Test02 sut = s -> s.equals(new StringBuilder(s).reverse().toString());
+  public void isWordPalindrome() {
+    //TODO: create your realization with lambda
+    Test02 sut = null;
 
     boolean result_1 = sut.isReversedStringTheSame("abccba");
     boolean result_2 = sut.isReversedStringTheSame("level");
@@ -101,9 +101,11 @@ public class Homework01 {
   @Test
   public void transformAndProvideSumWithCounter() {
 
-    Transform transform = Integer::valueOf;
+    //TODO: create your realization with lambda
+    Transform transform = null;
 
-    Summarizer increment = Integer::sum;
+    //TODO: create your realization with lambda
+    Summarizer increment = null;
 
     Counter sut_1 = new Counter(transform, increment);
     Counter sut_2 = new Counter(transform, increment);
@@ -115,10 +117,12 @@ public class Homework01 {
   }
 
   @Test
-  public void sortByNameDistinct() {
+  public void sortByNameLength() {
+
     String[] names = {"Fred", "Maggy", "Suzan", "Loid", "Nir", "Lo", "Stefan", "Maximilian"};
 
-    Arrays.sort(names, Comparator.comparingInt(String::length));
+    //TODO: Write Comparator realization with lambda expression
+    Arrays.sort(names, null);
 
     String[] expectedSortedNames = {"Lo", "Nir", "Fred", "Loid", "Maggy",
         "Suzan", "Stefan", "Maximilian"};
