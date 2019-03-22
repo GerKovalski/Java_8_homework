@@ -125,7 +125,7 @@ public class Homework01 {
 
     String[] names = {"Fred", "Maggy", "Suzan", "Loid", "Nir", "Lo", "Stefan", "Maximilian"};
 
-    // Write Comparator realization with lambda expression
+    //Write Comparator realization with lambda expression
     Arrays.sort(names, Comparator.comparingInt(String::length));
 
     String[] expectedSortedNames = {"Lo", "Nir", "Fred", "Loid", "Maggy",
