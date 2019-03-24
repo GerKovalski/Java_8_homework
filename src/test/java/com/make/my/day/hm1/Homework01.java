@@ -86,7 +86,7 @@ public class Homework01 {
     private Summarizer summarizer;
 
     public Counter(Transform transform,
-        Summarizer summarizer) {
+                   Summarizer summarizer) {
       this.transform = transform;
       this.summarizer = summarizer;
     }
@@ -121,7 +121,7 @@ public class Homework01 {
     Arrays.sort(names, Comparator.comparingInt(String::length));
 
     String[] expectedSortedNames = {"Lo", "Nir", "Fred", "Loid", "Maggy",
-        "Suzan", "Stefan", "Maximilian"};
+            "Suzan", "Stefan", "Maximilian"};
 
     assertArrayEquals(expectedSortedNames, names);
   }
