@@ -99,7 +99,7 @@ public class MergeSortJoinTest {
         long count = StreamSupport.stream(new MergeSortInnerJoinSpliterator<>(left,
                 right, Function.identity(), Function.identity(), true), false)
                 .count();
-        assertThat("Incorrect result", count, is(Integer.MAX_VALUE >> 2));
+        assertThat("Incorrect result", count, is((long)Integer.MAX_VALUE >> 2));
     }
 
     //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
