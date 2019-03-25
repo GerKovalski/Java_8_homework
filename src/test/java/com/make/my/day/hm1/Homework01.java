@@ -6,7 +6,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-
 import org.junit.Test;
 
 public class Homework01 {
@@ -37,13 +36,13 @@ public class Homework01 {
   private interface Test02 {
 
     /**
-     * Check reverse word exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
+     * Check if word is palindrome exm: "word" == "drow" -> false exm2: "eye" == "eye"  -> true
      */
     boolean isReversedStringTheSame(String word);
   }
 
   @Test
-  public void reversedWord() {
+  public void isWordPalindrome() {
     Test02 sut = word -> word.equals(new StringBuilder(word).reverse().toString());
 
     boolean result_1 = sut.isReversedStringTheSame("abccba");
@@ -114,7 +113,8 @@ public class Homework01 {
   }
 
   @Test
-  public void sortByNameDistinct() {
+  public void sortByNameLength() {
+
     String[] names = {"Fred", "Maggy", "Suzan", "Loid", "Nir", "Lo", "Stefan", "Maximilian"};
 
     Arrays.sort(names, (fStr, sStr) -> fStr.length() - sStr.length());
