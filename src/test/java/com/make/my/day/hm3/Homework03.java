@@ -114,7 +114,7 @@ public class Homework03 {
             s = s.toLowerCase();
             Map<Integer, Integer> map1 = s.chars().boxed()
                     .collect(HashMap::new, (Map<Integer, Integer> map, Integer i) ->
-                            map.put(i, map.containsKey(i) ? map.get(i)+1 : 1), Map::putAll);
+                            map.put(i, map.getOrDefault(i, 0) + 1) , Map::putAll);
             return map1.values().stream().max(Comparator.comparingInt(o -> o)).get();
         }).reversed())
         .toArray(String[]::new);
