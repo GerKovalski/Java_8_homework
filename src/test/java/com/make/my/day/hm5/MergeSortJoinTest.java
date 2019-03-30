@@ -1,31 +1,23 @@
 package com.make.my.day.hm5;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import javafx.util.Pair;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import javafx.util.Pair;
+import org.junit.Test;
 
 public class MergeSortJoinTest {
 
@@ -76,7 +68,7 @@ public class MergeSortJoinTest {
   public void spliteratorIntTest() {
     Stream<Integer> left = IntStream.iterate(1, i -> i + 1).limit(10).boxed();
     Stream<String> right = Arrays.stream("0x 1a 2b 3c 4e 5g 9l".split(" "));
-
+//2b 3c 4e 5g 9l
     List<String> result = StreamSupport.stream(new MergeSortInnerJoinSpliterator<>(left,
         right, String::valueOf, s -> s.substring(0, 1), false), false)
         .map(pair -> pair.getKey() + " " + pair.getValue())
@@ -103,46 +95,110 @@ public class MergeSortJoinTest {
         right, Function.identity(), Function.identity(), true), false)
         .count();
     assertThat("Incorrect result", count, is((long) Integer.MAX_VALUE >> 2));
+
   }
 
   //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
   public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
 
-    List<L> leftList;
-    List<R> rightList;
+    Stream<L> left;
+    Stream<R> right;
+    Iterator<L> leftIter;
+    Iterator<R> rightIter;
     Function<L, C> keyExtractorLeft;
     Function<R, C> keyExtractorRight;
-    boolean isSorted;
-    private AtomicInteger currentElem = new AtomicInteger(0);
+    AtomicInteger flag = new AtomicInteger(0);
+    L nextLeft;
+    R nextRight;
+    L prevLeft;
+    boolean lastOne = true;
 
     public MergeSortInnerJoinSpliterator(Stream<L> left,
         Stream<R> right,
         Function<L, C> keyExtractorLeft,
         Function<R, C> keyExtractorRight,
         boolean isSorted) {
+
       if (!isSorted) {
-        leftList = left.sorted().collect(Collectors.toList());
-        rightList = right.sorted().collect(Collectors.toList());
+        this.leftIter = left.sorted().iterator();
+        this.rightIter = right.sorted().iterator();
       }
       else {
-        leftList = left.collect(Collectors.toList());
-        rightList = right.collect(Collectors.toList());
+        this.leftIter = left.iterator();
+        this.rightIter = right.iterator();
       }
       this.keyExtractorLeft = keyExtractorLeft;
       this.keyExtractorRight = keyExtractorRight;
-      this.isSorted = isSorted;
+
+      this.left = left;
+      this.right = right;
+      if (leftIter.hasNext()) {
+        nextLeft = leftIter.next();
+      }
+
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
 
       boolean result = false;
-      for (L leftEl : leftList) {
-        rightList.stream()
-            .filter(r -> keyExtractorLeft.apply(leftEl).equals(keyExtractorRight.apply(r)))
-            .forEach(r -> action.accept(new Pair<>(leftEl,r)));
-      }
 
+      if (leftIter.hasNext() || rightIter.hasNext() || lastOne) {
+        switch (flag.get()) {
+          case 0:
+            if (leftIter.hasNext() && rightIter.hasNext()) {
+              prevLeft = nextLeft;
+              nextLeft = leftIter.next();
+              nextRight = rightIter.next();
+            }
+            break;
+          case -1:
+            if (leftIter.hasNext()) {
+              prevLeft = nextLeft;
+              nextLeft = leftIter.next();
+            }
+            else if (lastOne) {
+              prevLeft = nextLeft;
+              nextLeft = null;
+              lastOne = false;
+            }
+            else {
+              return false;
+            }
+            break;
+
+          case 1:
+            if (rightIter.hasNext()) {
+              nextRight = rightIter.next();
+            }
+            else {
+              return false;
+            }
+            break;
+          default:
+            return false;
+        }
+
+        int comparisonResult = keyExtractorLeft.apply(prevLeft).compareTo(keyExtractorRight.apply(nextRight));
+
+        if (comparisonResult < 0) {
+          flag.set(-1);
+          result = true;
+        }
+        else if (comparisonResult > 0) {
+          flag.set(1);
+          result = true;
+        }
+        else {
+          if (nextLeft != null && keyExtractorLeft.apply(prevLeft).equals(keyExtractorLeft.apply(nextLeft))) {
+            action.accept(new Pair<>(prevLeft, nextRight));
+          }
+          action.accept(new Pair<>(prevLeft, nextRight));
+          flag.set(1);
+          result = true;
+        }
+
+      }
       return result;
     }
 
@@ -153,12 +209,12 @@ public class MergeSortJoinTest {
 
     @Override
     public long estimateSize() {
-      return leftList.size();
+      return Long.MAX_VALUE;
     }
 
     @Override
     public int characteristics() {
-      return SIZED | SUBSIZED | ORDERED | CONCURRENT;
+      return ORDERED;
     }
   }
 
