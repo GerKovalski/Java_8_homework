@@ -1,5 +1,7 @@
 package com.make.my.day.hm5;
 
+import java.util.ArrayList;
+import java.util.stream.Stream;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -75,38 +77,88 @@ public class BiGrammSpliteratorTest {
 
     }
 
-    class BigrammSpliterator implements Spliterator<String> {
-        //ToDo: Write your own bi-gram spliterator
-        //Todo: Should works in parallel
+  class BigrammSpliterator implements Spliterator<String> {
 
-        /**
-         * Read about bi and n-grams https://en.wikipedia.org/wiki/N-gram.
-         *
-         * @param source
-         */
-        public BigrammSpliterator(List<String> source, String delimeter) {
-        }
+    private List<String> source;
+    private int index = 0;
+    private String delimeter;
+    //ToDo: Write your own bi-gram spliterator
+    //Todo: Should works in parallel
 
-        @Override
-        public boolean tryAdvance(Consumer<? super String> action) {
-            return false;
-        }
-
-        @Override
-        public BigrammSpliterator trySplit() {
-            return null;
-        }
-
-        @Override
-        public long estimateSize() {
-            return 0;
-        }
-
-        @Override
-        public int characteristics() {
-            return 0;
-        }
+    /**
+     * Read about bi and n-grams https://en.wikipedia.org/wiki/N-gram.
+     */
+    public BigrammSpliterator(List<String> source, String delimeter) {
+      this.source = source;
+      this.delimeter = delimeter;
     }
 
+    @Override
+    public boolean tryAdvance(Consumer<? super String> action) {
+      if (index == source.size() - 1) {
+        ++index;
+        return true;
+      } else if (index == source.size()) {
+        return false;
+      } else {
+        action.accept(source.get(index) + " " + source.get(index + 1));
+        ++index;
+        return true;
+      }
+    }
 
+    @Override
+    public BigrammSpliterator trySplit() {
+
+      if (!hasOnlyBigrams(source)) {
+        index = 0;
+        List<String> temp = new ArrayList<>();
+        Stream.iterate(0, i -> ++i).limit(source.size())
+            .forEach(i -> {
+              if (i < source.size() - 1) {
+                temp.add( source.get(i) + " " + source.get(i + 1));
+              }
+            });
+        source = temp;
+      }
+
+      List<String> newOne = source.subList(0, source.size() / 2);
+      List<String> newTwo = source.subList(source.size() / 2, source.size());
+
+      System.out.println(newOne);
+      System.out.println(newTwo);
+
+      BigrammSpliterator bigrammSpliterator = new BigrammSpliterator(newOne, delimeter);
+
+      index = 0;
+      this.source = newTwo;
+
+      return bigrammSpliterator;
+    }
+
+    @Override
+    public long estimateSize() {
+      return 0;
+    }
+
+    @Override
+    public int characteristics() {
+      return 0;
+    }
+
+    boolean hasOnlyBigrams(List<String> list){
+      long bigramCount = list.stream().flatMapToInt(s -> s.chars())
+          .mapToObj(i -> (char) i)
+          .filter(character -> character.equals(' '))
+          .mapToInt(x -> x)
+          .count();
+
+      if(bigramCount == list.size()){
+       return true;
+      }
+      else {
+        return false;
+      }
+    }
+  }
 }
