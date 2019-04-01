@@ -1,3 +1,6 @@
 .gradle
+.nb-gradle
 .idea
 out
+build
+*.iml

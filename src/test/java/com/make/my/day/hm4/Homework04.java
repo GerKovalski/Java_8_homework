@@ -3,10 +3,13 @@ package com.make.my.day.hm4;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -18,8 +21,7 @@ public class Homework04 {
     String[] words = new String[]{"one", "two", "three"};
 
     List<String> result = Arrays.stream(words)
-        // TODO: Add realization
-        .collect(null, null, null);
+        .collect(ArrayList::new, List::add, List::addAll);
 
     assertArrayEquals(words, result.toArray());
   }
@@ -29,8 +31,7 @@ public class Homework04 {
     String[] words = new String[]{"one", "one", "two", "two", "three"};
 
     Set<String> result = Arrays.stream(words)
-        // TODO: Add realization
-        .collect(null, null, null);
+        .collect(HashSet::new, Set::add, Set::addAll);
 
     assertArrayEquals(new String[]{"one", "two", "three"}, result.toArray());
   }
@@ -41,7 +42,9 @@ public class Homework04 {
 
     Map<String, Integer> result = Arrays.stream(words)
         // TODO: Add realization to store words - count. If key the same value must increment
-        .collect(null, null, null);
+        .collect(HashMap::new,
+            (map, word) -> map.put(word, map.containsKey(word) ? (map.get(word) + 1) : 1),
+            Map::putAll);
 
     Map<String, Integer> expected = new HashMap<>();
     expected.put("one", 3);
@@ -57,9 +60,10 @@ public class Homework04 {
 
     List<String> result = Arrays.stream(words)
         // TODO: Add realization. Should get unique words and concatenate themselves
+        .distinct()
         .collect(Collectors.collectingAndThen(
-            null,
-            null
+            Collectors.toList(),
+            list -> list.stream().map(s -> s + s).collect(Collectors.toList())
         ));
 
     assertArrayEquals(new String[]{"oneone", "twotwo", "threethree"}, result.toArray());
@@ -71,7 +75,7 @@ public class Homework04 {
 
     String result = Arrays.stream(words)
         // TODO: Add realization
-        .collect(null);
+        .collect(Collectors.joining(", ", "Materials[ ", " ]"));
 
     assertEquals("Materials[ Glass, Steel, Wood, Stone ]", result);
   }
@@ -82,7 +86,7 @@ public class Homework04 {
 
     Map<Integer, List<String>> result = Arrays.stream(words)
         // TODO: Use here grouping by
-        .collect(null);
+        .collect(Collectors.groupingBy((String str) -> str.length()));
 
     Map<Integer, List<String>> expected = new HashMap<>();
     expected.put(3, Arrays.asList("one", "one", "one", "two", "two"));
@@ -92,7 +96,8 @@ public class Homework04 {
   }
 
 
-  private class Dog{
+  private class Dog {
+
     private String name;
     private int age;
 
@@ -116,6 +121,24 @@ public class Homework04 {
     public void setAge(int age) {
       this.age = age;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Dog dog = (Dog) o;
+      return age == dog.age &&
+          Objects.equals(name, dog.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, age);
+    }
   }
 
 
@@ -127,7 +150,8 @@ public class Homework04 {
 
     Map<String, List<Integer>> result = dogs.stream()
         // TODO: Use here `groupingBy` plus `mapping`
-        .collect(null);
+        .collect(Collectors.groupingBy((Dog dog) -> dog.getName(),
+            Collectors.mapping((Dog dog) -> dog.getAge(), Collectors.toList())));
 
     Map<String, List<Integer>> expected = new HashMap<>();
     expected.put("Bim", Arrays.asList(4, 8));
@@ -139,8 +163,122 @@ public class Homework04 {
   }
 
   @Test
-  public void partitionByOddEven() {
-    int[] numbers = new int[]{2, 3, 8, 7, 8, 9, 13, 11};
+  public void partitionByEvenOdd() {
+    List<Dog> dogs = Arrays.asList(
+        new Dog("Bim", 4), new Dog("Duke", 7), new Dog("Fenrir", 120));
 
+    //TODO: make you'r realization
+    Map<Boolean, List<Dog>> result = dogs.stream()
+        .collect(Collectors.partitioningBy(dog -> dog.getAge() % 2 == 0));
+
+    Map<Boolean, List<Dog>> expected = new HashMap<>();
+    expected.put(true, Arrays.asList(new Dog("Bim", 4), new Dog("Fenrir", 120)));
+    expected.put(false, Arrays.asList(new Dog("Duke", 7)));
+
+    assertEquals(expected, result);
+  }
+
+  private enum Role {
+    ADMIN, USER, MANAGER
+  }
+
+  private class User {
+
+    private String email;
+    private Role role;
+
+    public User(String email, Role role) {
+      this.email = email;
+      this.role = role;
+    }
+
+    public String getEmail() {
+      return email;
+    }
+
+    public Role getRole() {
+      return role;
+    }
+  }
+
+  private class UserDTO {
+
+    private String email;
+
+    private List<Role> roles;
+
+    public UserDTO(String email, List<Role> roles) {
+      this.email = email;
+      this.roles = roles;
+    }
+
+    public String getEmail() {
+      return email;
+    }
+
+    public List<Role> getRoles() {
+      return roles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      UserDTO userDTO = (UserDTO) o;
+      return Objects.equals(email, userDTO.email) &&
+          Objects.equals(roles, userDTO.roles);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(email, roles);
+    }
+
+    @Override
+    public String toString() {
+      return "UserDTO{" +
+          "email='" + email + '\'' +
+          ", roles=" + roles +
+          '}';
+    }
+  }
+
+
+  @Test
+  public void convertFromUserToUserDTOTest() {
+    List<User> usersFromDB = Arrays.asList(
+        new User("superman@epam.com", Role.ADMIN),
+        new User("superman@epam.com", Role.USER),
+        new User("superman@epam.com", Role.MANAGER),
+        new User("someone@epam.com", Role.USER),
+        new User("sonofsun@epam.com", Role.USER),
+        new User("sonofsun@epam.com", Role.MANAGER)
+    );
+
+    List<UserDTO> userDTOS = usersFromDB.stream()
+        .collect(Collectors.collectingAndThen(Collectors.groupingBy(
+            (User user) -> user.getEmail(),
+            Collectors.mapping((User user) -> user.getRole(), Collectors.toList())),
+            map -> {
+              List<UserDTO> result = new ArrayList<>(map.size());
+              for (String email : map.keySet()) {
+                result.add(new UserDTO(email, map.get(email)));
+              }
+              return result;
+            }
+            )
+        );
+
+    List<UserDTO> expected = Arrays.asList(
+        new UserDTO("someone@epam.com", Arrays.asList(Role.USER)),
+        new UserDTO("sonofsun@epam.com", Arrays.asList(Role.USER, Role.MANAGER)),
+        new UserDTO("superman@epam.com", Arrays.asList(Role.ADMIN, Role.USER, Role.MANAGER))
+    );
+
+    assertEquals(expected, userDTOS);
   }
 }
