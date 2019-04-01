@@ -278,3 +278,4 @@ public class Homework02 {
     assertEquals(65, result.intValue());
   }
 }
+
