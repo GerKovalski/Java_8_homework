@@ -101,9 +101,9 @@ public class MergeSortJoinTest {
           .peek(System.out::println)
           .filter((r -> keyExtractorLeft.apply(left.get(leftIndex)).equals(keyExtractorRight.apply(r))))
           .peek(System.out::println)
-          .map(r -> new Pair<>(left.get(leftIndex), r)).
-          peek(System.out::println).
-          peek(System.out::println)
+          .map(r -> new Pair<>(left.get(leftIndex), r))
+          .peek(System.out::println)
+          .peek(System.out::println)
           .forEach(action::accept);
       ++leftIndex;
       return true;
