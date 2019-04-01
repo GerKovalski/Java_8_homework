@@ -79,7 +79,7 @@ public class Homework04 {
 
     String result = Arrays.stream(words)
         // TODO: Add realization
-        .collect(null);
+        .collect(Collectors.joining(", ","Materials[ "," ]"));
 
     assertEquals("Materials[ Glass, Steel, Wood, Stone ]", result);
   }
@@ -90,7 +90,7 @@ public class Homework04 {
 
     Map<Integer, List<String>> result = Arrays.stream(words)
         // TODO: Use here grouping by
-        .collect(null);
+        .collect(Collectors.groupingBy(String::length));
 
     Map<Integer, List<String>> expected = new HashMap<>();
     expected.put(3, Arrays.asList("one", "one", "one", "two", "two"));

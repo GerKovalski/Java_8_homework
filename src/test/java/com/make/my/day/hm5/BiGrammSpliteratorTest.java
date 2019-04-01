@@ -147,18 +147,13 @@ public class BiGrammSpliteratorTest {
     }
 
     boolean hasOnlyBigrams(List<String> list){
-      long bigramCount = list.stream().flatMapToInt(s -> s.chars())
+
+      long bigramCount = list.stream().flatMapToInt(CharSequence::chars)
           .mapToObj(i -> (char) i)
           .filter(character -> character.equals(' '))
-          .mapToInt(x -> x)
           .count();
 
-      if(bigramCount == list.size()){
-       return true;
-      }
-      else {
-        return false;
-      }
+      return bigramCount == list.size();
     }
   }
 }
