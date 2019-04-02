@@ -6,17 +6,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -104,31 +99,137 @@ public class MergeSortJoinTest {
 
     //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
     public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
+        Stream<L> leftStream;
+        Stream<R> rightStream;
+        Function<L, C> keyExtractorLeft;
+        Function<R, C> keyExtractorRight;
+        L nextLeft;
+        R nextRight;
+        Iterator<L> ltIter;
+        Iterator<R> rIter;
+        ArrayList<L> lBuffer = new ArrayList<>();
+        ArrayList<R> rBuffer = new ArrayList<>();
+        Short flag;
+        Short leftInd;
+        Short rightInd;
+
         public MergeSortInnerJoinSpliterator(Stream<L> left,
                                              Stream<R> right,
                                              Function<L, C> keyExtractorLeft,
                                              Function<R, C> keyExtractorRight,
                                              boolean isSorted) {
+            if (!isSorted) {
+                this.ltIter = left.sorted().iterator();
+                this.rIter = right.sorted().iterator();
+            } else {
+                this.ltIter = left.iterator();
+                this.rIter = right.iterator();
+            }
+            this.leftStream = left;
+            this.rightStream = right;
+            this.keyExtractorLeft = keyExtractorLeft;
+            this.keyExtractorRight = keyExtractorRight;
+            this.nextLeft = ltIter.next();
+            this.nextRight = rIter.next();
+            lBuffer.add(nextLeft);
+            rBuffer.add(nextRight);
+            leftInd = 0;
+            rightInd = 0;
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
+            if (ltIter.hasNext() || rIter.hasNext() || isLast()) {
+                if (flag == null) {
+                    while (compare() < 0) {
+                        if (notLeft()) return false;
+                    }
+                    while (compare() > 0) {
+                        if (notRight()) return false;
+                    }
+                    flag = rightInd;
+                }
+                if (compare() == 0) {
+                    action.accept(new Pair<>(lBuffer.get(leftInd), rBuffer.get(rightInd)));
+                    if (notRight()) return false;
+                } else {
+                    rightInd = flag;
+                    nextRight = rBuffer.get(rightInd);
+                    if (notLeft()) return false;
+                    flag = null;
+                }
+            } else {
+                return false;
+            }
+            return true;
+        }
+
+        private int compare() {
+            C left = keyExtractorLeft.apply(nextLeft);
+            C right = keyExtractorRight.apply(nextRight);
+            return left.compareTo(right);
+        }
+
+        private boolean notLeft() {
+            if (lBuffer.size() > leftInd + 1) {
+                nextLeft = lBuffer.get(leftInd + 1);
+                leftInd++;
+            } else if (ltIter.hasNext()) {
+                nextLeft = ltIter.next();
+                if (lBuffer.size() > 10) {
+                    lBuffer.remove(0);
+                    lBuffer.add(nextLeft);
+                } else {
+                    lBuffer.add(nextLeft);
+                    leftInd++;
+                }
+
+            } else {
+                return true;
+            }
             return false;
         }
 
+        private boolean notRight() {
+            if (rBuffer.size() > rightInd + 1) {
+                nextRight = rBuffer.get(rightInd + 1);
+                rightInd++;
+            } else if (rIter.hasNext()) {
+                nextRight = rIter.next();
+                if (rBuffer.size() > 10) {
+                    rBuffer.remove(0);
+                    rBuffer.add(nextRight);
+                } else {
+                    rBuffer.add(nextRight);
+                    rightInd++;
+                }
+            } else {
+                return true;
+            }
+            return false;
+        }
+
+
+
+        private boolean isLast() {
+            return !ltIter.hasNext();
+        }
+
         @Override
-        public Spliterator<Pair<L, R>> trySplit() {
+        public Spliterator<Pair<L, R>> trySplit () {
             return null;
         }
 
         @Override
-        public long estimateSize() {
-            return 0;
+        public long estimateSize () {
+            return Long.MAX_VALUE;
         }
+
+
 
         @Override
         public int characteristics() {
-            return 0;
+            return ORDERED | IMMUTABLE;
         }
     }
 
