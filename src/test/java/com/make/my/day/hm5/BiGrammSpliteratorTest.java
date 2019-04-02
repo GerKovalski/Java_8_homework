@@ -1,6 +1,8 @@
 package com.make.my.day.hm5;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,10 +11,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.Test;
 
 public class BiGrammSpliteratorTest {
 
@@ -84,27 +83,53 @@ public class BiGrammSpliteratorTest {
          *
          * @param source
          */
-        public BigrammSpliterator(List<String> source, String delimeter) {
+
+        private List<String> source;
+      private String delimiter;
+      private int currentValue;
+      private int endValue;
+
+      public BigrammSpliterator(List<String> source, String delimeter) {
+        this.source = source;
+        this.delimiter = delimeter;
+        this.currentValue = 0;
+        this.endValue = this.source.size();
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super String> action) {
+          if (endValue - 1 > currentValue) {
+            action.accept(new StringBuffer()
+                .append(source.get(currentValue++))
+                .append(delimiter)
+                .append(source.get(currentValue))
+                .toString());
+            return true;
+          }
             return false;
         }
 
         @Override
         public BigrammSpliterator trySplit() {
+          if (source.size() - currentValue <= 2) {
             return null;
+          }
+          int halfOfPreviousListIndex = (endValue - currentValue) / 2;
+          int middle = currentValue + halfOfPreviousListIndex;
+          BigrammSpliterator result = new BigrammSpliterator(source.subList(currentValue,
+              middle + 1), delimiter);
+          currentValue = middle;
+          return result;
         }
 
         @Override
         public long estimateSize() {
-            return 0;
+          return source.size();
         }
 
         @Override
         public int characteristics() {
-            return 0;
+          return SIZED | IMMUTABLE | SUBSIZED | ORDERED;
         }
     }
 
