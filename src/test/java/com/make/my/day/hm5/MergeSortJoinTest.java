@@ -129,8 +129,12 @@ public class MergeSortJoinTest {
             this.right = right;
             this.keyExtractorLeft = keyExtractorLeft;
             this.keyExtractorRight = keyExtractorRight;
-            this.cLeft = iterLeft.next();
-            this.cRight = iterRight.next();
+            if (iterLeft.hasNext()) {
+                cLeft = iterLeft.next();
+            }
+            if (iterRight.hasNext()) {
+                cRight = iterRight.next();
+            }
             bufferLeft.add(cLeft);
             bufferRight.add(cRight);
             indLeft = 0;
