@@ -1,6 +1,5 @@
 package com.make.my.day.hm5;
 
-import java.util.ArrayList;
 import org.junit.Test;
 
 import java.util.Arrays;
