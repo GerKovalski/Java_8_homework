@@ -102,18 +102,111 @@ public class MergeSortJoinTest {
         assertThat("Incorrect result", count, is((long)Integer.MAX_VALUE >> 2));
     }
 
-    //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
     public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
-        public MergeSortInnerJoinSpliterator(Stream<L> left,
-                                             Stream<R> right,
-                                             Function<L, C> keyExtractorLeft,
-                                             Function<R, C> keyExtractorRight,
-                                             boolean isSorted) {
+        MergeSortInnerJoinSpliterator(Stream<L> left, Stream<R> right, Function<L, C> keyExtractorLeft,
+            Function<R, C> keyExtractorRight, boolean isSorted) {
+            if (!isSorted) {
+                this.leftIter = left.sorted().iterator();
+                this.rightIter = right.sorted().iterator();
+            } else {
+                this.leftIter = left.iterator();
+                this.rightIter = right.iterator();
+            }
+            this.left = left;
+            this.right = right;
+            this.leftIndex = 0;
+            this.rightIndex = 0;
+            this.keyExtractorLeft = keyExtractorLeft;
+            this.keyExtractorRight = keyExtractorRight;
+            this.currentLeft = leftIter.next();
+            this.currentRight = rightIter.next();
+            this.leftBuffer.add(currentLeft);
+            this.rightBuffer.add(currentRight);
+
+        }
+        Stream<L> left;
+        Stream<R> right;
+        Function<L, C> keyExtractorLeft;
+        Function<R, C> keyExtractorRight;
+        L currentLeft;
+        R currentRight;
+        Iterator<L> leftIter;
+        Iterator<R> rightIter;
+        List<L> leftBuffer = new ArrayList<>();
+        List<R> rightBuffer = new ArrayList<>();
+        int mark;
+        int leftIndex;
+        int rightIndex;
+
+
+        private int compare() {
+            C left = keyExtractorLeft.apply(currentLeft);
+            C right = keyExtractorRight.apply(currentRight);
+            return left.compareTo(right);
+        }
+
+        private boolean advanceLeft() {
+            if (leftBuffer.size() > leftIndex + 1) {
+                currentLeft = leftBuffer.get(leftIndex + 1);
+                leftIndex++;
+            } else if (leftIter.hasNext()) {
+                currentLeft = leftIter.next();
+                if (leftBuffer.size() > 10) {
+                    leftBuffer.remove(0);
+                    leftBuffer.add(currentLeft);
+                } else {
+                    leftBuffer.add(currentLeft);
+                    leftIndex++;
+                }
+
+            } else { return false; }
+            return true;
+        }
+
+        private boolean advanceRight() {
+            if (rightBuffer.size() > rightIndex + 1) {
+                currentRight = rightBuffer.get(rightIndex + 1);
+                rightIndex++;
+            } else if (rightIter.hasNext()) {
+                currentRight = rightIter.next();
+                if (rightBuffer.size() > 10) {
+                    rightBuffer.remove(0);
+                    rightBuffer.add(currentRight);
+                } else {
+                    rightBuffer.add(currentRight);
+                    rightIndex++;
+                }
+            } else { return false; }
+            return true;
+        }
+
+        private boolean isLast() {
+            return !leftIter.hasNext();
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
-            return false;
+            if (leftIter.hasNext() || rightIter.hasNext() || isLast()) {
+                if (mark == 0) {
+                    while (compare() < 0) {
+                        if (!advanceLeft()) return false;
+                    }
+                    while (compare() > 0) {
+                        if (!advanceRight()) return false;
+                    }
+                    mark = rightIndex;
+                }
+                if (compare() == 0) {
+                    action.accept(new Pair<>(leftBuffer.get(leftIndex), rightBuffer.get(rightIndex)));
+                    if (!advanceRight()) return false;
+                } else {
+                    rightIndex = mark;
+                    currentRight = rightBuffer.get(rightIndex);
+                    if (!advanceLeft()) return false;
+                    mark = 0;
+                }
+            } else { return false; }
+            return true;
         }
 
         @Override
@@ -123,13 +216,12 @@ public class MergeSortJoinTest {
 
         @Override
         public long estimateSize() {
-            return 0;
+            return Long.MAX_VALUE;
         }
 
         @Override
         public int characteristics() {
-            return 0;
+            return ORDERED | IMMUTABLE;
         }
     }
-
 }
