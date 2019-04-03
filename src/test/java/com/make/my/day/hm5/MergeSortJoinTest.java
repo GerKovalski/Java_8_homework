@@ -6,17 +6,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -61,12 +56,12 @@ public class MergeSortJoinTest {
         assertThat("Incorrect result", new HashSet<>(result), is(new HashSet<>(expected)));
         assertThat("Incorrect result order",
                 result.stream()
-                        .map(s -> s.substring(0,3))
+                        .map(s -> s.substring(0, 3))
                         .collect(Collectors.toList()),
                 is(expected.stream()
-                        .map(s -> s.substring(0,3))
+                        .map(s -> s.substring(0, 3))
                         .collect(Collectors.toList()))
-                );
+        );
     }
 
     @Test
@@ -99,21 +94,133 @@ public class MergeSortJoinTest {
         long count = StreamSupport.stream(new MergeSortInnerJoinSpliterator<>(left,
                 right, Function.identity(), Function.identity(), true), false)
                 .count();
-        assertThat("Incorrect result", count, is((long)Integer.MAX_VALUE >> 2));
+        assertThat("Incorrect result", count, is((long) Integer.MAX_VALUE >> 2));
     }
 
     //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
     public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
+        Stream<L> left;
+        Stream<R> right;
+        Function<L, C> keyExtractorLeft;
+        Function<R, C> keyExtractorRight;
+        L leftPointer;
+        R rightPointer;
+        Iterator<L> leftIterator;
+        Iterator<R> rightIterator;
+        ArrayList<L> leftBuffer = new ArrayList<>();
+        ArrayList<R> rightBuffer = new ArrayList<>();
+        Short flag;
+        Short leftIndex;
+        Short rightIndex;
+
+
         public MergeSortInnerJoinSpliterator(Stream<L> left,
                                              Stream<R> right,
                                              Function<L, C> keyExtractorLeft,
                                              Function<R, C> keyExtractorRight,
                                              boolean isSorted) {
+            if (!isSorted) {
+                leftIterator = left.sorted().iterator();
+                rightIterator = right.sorted().iterator();
+            } else {
+                leftIterator = left.iterator();
+                rightIterator = right.iterator();
+            }
+            this.left = left;
+            this.right = right;
+            this.keyExtractorLeft = keyExtractorLeft;
+            this.keyExtractorRight = keyExtractorRight;
+
+            if (leftIterator.hasNext()) {
+                leftPointer = leftIterator.next();
+            }
+            if (rightIterator.hasNext()) {
+                rightPointer = rightIterator.next();
+            }
+            leftBuffer.add(leftPointer);
+            rightBuffer.add(rightPointer);
+            leftIndex = 0;
+            rightIndex = 0;
         }
+
+
 
         @Override
         public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
+            if (leftIterator.hasNext() || rightIterator.hasNext() || isLast()) {
+                if (flag == null) {
+                    while (compare() < 0) {
+                        if (tryAdvanceLeft()) return false;
+                    }
+                    while (compare() > 0) {
+                        if (tryAdvanceRight()) return false;
+                    }
+                    flag = rightIndex;
+                }
+                if (compare() == 0) {
+                    action.accept(new Pair<>(leftBuffer.get(leftIndex), rightBuffer.get(rightIndex)));
+                    if (tryAdvanceRight()) return false;
+                } else {
+                    rightIndex = flag;
+                    rightPointer = rightBuffer.get(rightIndex);
+                    if (tryAdvanceLeft()) return false;
+                    flag = null;
+                }
+            } else {
+                return false;
+            }
+            return true;
+        }
+
+        private int compare() {
+            C left = keyExtractorLeft.apply(leftPointer);
+            C right = keyExtractorRight.apply(rightPointer);
+            return left.compareTo(right);
+        }
+
+        private boolean tryAdvanceLeft() {
+            if (leftBuffer.size() > leftIndex + 1) {
+                leftPointer = leftBuffer.get(leftIndex + 1);
+                leftIndex++;
+            } else if (leftIterator.hasNext()) {
+                leftPointer = leftIterator.next();
+                if (leftBuffer.size() > 10) {
+                    leftBuffer.remove(0);
+                    leftBuffer.add(leftPointer);
+                } else {
+                    leftBuffer.add(leftPointer);
+                    leftIndex++;
+                }
+
+            } else {
+                return true;
+            }
             return false;
+        }
+
+        private boolean tryAdvanceRight() {
+            if (rightBuffer.size() > rightIndex + 1) {
+                rightPointer = rightBuffer.get(rightIndex + 1);
+                rightIndex++;
+            } else if (rightIterator.hasNext()) {
+                rightPointer = rightIterator.next();
+                if (rightBuffer.size() > 10) {
+                    rightBuffer.remove(0);
+                    rightBuffer.add(rightPointer);
+                } else {
+                    rightBuffer.add(rightPointer);
+                    rightIndex++;
+                }
+            } else {
+                return true;
+            }
+            return false;
+        }
+
+
+
+        private boolean isLast() {
+            return !leftIterator.hasNext();
         }
 
         @Override
@@ -123,12 +230,12 @@ public class MergeSortJoinTest {
 
         @Override
         public long estimateSize() {
-            return 0;
+            return Long.MAX_VALUE;
         }
 
         @Override
         public int characteristics() {
-            return 0;
+            return (ORDERED);
         }
     }
 

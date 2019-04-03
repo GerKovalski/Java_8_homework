@@ -84,27 +84,46 @@ public class BiGrammSpliteratorTest {
          *
          * @param source
          */
+        private List<String> source;
+        private String delimeter;
+        private int cnt = 0;
+
         public BigrammSpliterator(List<String> source, String delimeter) {
+            this.source = source;
+            this.delimeter = delimeter;
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super String> action) {
-            return false;
+            if (source.size()-1>cnt){
+                action.accept(source.get(cnt)+ delimeter+ source.get(++cnt));
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         @Override
         public BigrammSpliterator trySplit() {
-            return null;
+            if (source.size() - cnt <= 2) {
+                return null;
+            }
+            int middle = (source.size()-cnt)/2;
+            int elements = cnt + middle;
+            cnt = elements;
+            return new BigrammSpliterator(source.subList(elements-middle,elements+1),delimeter);
         }
+
 
         @Override
         public long estimateSize() {
-            return 0;
+            return source.size() - cnt;
         }
 
         @Override
         public int characteristics() {
-            return 0;
+            return (SIZED | SUBSIZED | CONCURRENT | ORDERED);
         }
     }
 
