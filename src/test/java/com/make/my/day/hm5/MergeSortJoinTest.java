@@ -6,17 +6,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -102,28 +97,129 @@ public class MergeSortJoinTest {
         assertThat("Incorrect result", count, is((long)Integer.MAX_VALUE >> 2));
     }
 
-    //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
     public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
-        public MergeSortInnerJoinSpliterator(Stream<L> left,
-                                             Stream<R> right,
-                                             Function<L, C> keyExtractorLeft,
-                                             Function<R, C> keyExtractorRight,
-                                             boolean isSorted) {
-        }
+      Stream<L> lStream;
+      Stream<R> rStream;
+      Function<L, C> keyExtractorLeft;
+      Function<R, C> keyExtractorRight;
+      L l;
+      R r;
+      Iterator<L> lIterator;
+      Iterator<R> rIterator;
+      ArrayList<L> lBuffer = new ArrayList<>();
+      ArrayList<R> rBuffer = new ArrayList<>();
+      Integer mark;
+      Integer lIndex;
+      Integer rIndex;
 
+      public MergeSortInnerJoinSpliterator(Stream<L> left,
+                                          Stream<R> right,
+                                          Function<L, C> keyExtractorLeft,
+                                          Function<R, C> keyExtractorRight,
+                                          boolean isSorted){
+
+        if (!isSorted) {
+          this.lIterator = left.sorted().iterator();
+          this.rIterator = right.sorted().iterator();
+        } else {
+          this.lIterator = left.iterator();
+          this.rIterator = right.iterator();
+        }
+        this.lStream = left;
+        this.rStream = right;
+        this.keyExtractorLeft = keyExtractorLeft;
+        this.keyExtractorRight = keyExtractorRight;
+        this.l = lIterator.next();
+        this.r = rIterator.next();
+        lBuffer.add(l);
+        rBuffer.add(r);
+        lIndex = 0;
+        rIndex = 0;
+      }
+
+      private int compare() {
+        C left = keyExtractorLeft.apply(l);
+        C right = keyExtractorRight.apply(r);
+        return left.compareTo(right);
+      }
+
+      private boolean lAdvice() {
+        if (lBuffer.size() > lIndex + 1) {
+          l = lBuffer.get(lIndex + 1);
+          lIndex++;
+        } else if (lIterator.hasNext()) {
+          l = lIterator.next();
+          if (lBuffer.size() > 10) {
+            lBuffer.remove(0);
+            lBuffer.add(l);
+          } else {
+            lBuffer.add(l);
+            lIndex++;
+          }
+        } else {
+          return true;
+        }
+        return false;
+      }
+
+     private boolean advanceRight() {
+        if (rBuffer.size() > rIndex + 1) {
+          r = rBuffer.get(rIndex + 1);
+          rIndex++;
+        } else if (rIterator.hasNext()) {
+          r = rIterator.next();
+          if (rBuffer.size() > 10) {
+            rBuffer.remove(0);
+            rBuffer.add(r);
+          } else {
+            rBuffer.add(r);
+            rIndex++;
+          }
+       } else {
+          return false;
+        }
+        return true;
+      }
+
+
+      private boolean isLast() {
+        return !lIterator.hasNext();
+      }
         @Override
         public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
+          if (lIterator.hasNext() || rIterator.hasNext() || isLast()) {
+            if (mark == null) {
+              while (compare() < 0) {
+                if (lAdvice()) return false;
+              }
+              while (compare() > 0) {
+                if (!advanceRight()) return false;
+              }
+              mark = rIndex;
+            }
+            if (compare() == 0) {
+              action.accept(new Pair<>(lBuffer.get(lIndex), rBuffer.get(rIndex)));
+              if (!advanceRight()) return false;
+            } else {
+              rIndex = mark;
+              r = rBuffer.get(rIndex);
+              if (lAdvice()) return false;
+              mark = null;
+            }
+          } else {
             return false;
+          }
+          return true;
         }
 
         @Override
         public Spliterator<Pair<L, R>> trySplit() {
-            return null;
+          return null;
         }
 
         @Override
         public long estimateSize() {
-            return 0;
+            return Long.MAX_VALUE;
         }
 
         @Override
