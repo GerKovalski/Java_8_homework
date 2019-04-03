@@ -6,17 +6,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -104,16 +99,117 @@ public class MergeSortJoinTest {
 
     //ToDo: Implement your own merge sort inner join spliterator. See https://en.wikipedia.org/wiki/Sort-merge_join
     public static class MergeSortInnerJoinSpliterator<C extends Comparable<C>, L, R> implements Spliterator<Pair<L, R>> {
+        Stream<L> left;
+        Stream<R> right;
+        Function<L, C> keyExtractorLeft;
+        Function<R, C> keyExtractorRight;
+        L cLeft;
+        R cRight;
+        Iterator<L> iterLeft;
+        Iterator<R> iterRight;
+        ArrayList<L> bufferLeft = new ArrayList<>();
+        ArrayList<R> bufferRight = new ArrayList<>();
+        Integer indLeft;
+        Integer indRight;
+        Integer mark;
+
         public MergeSortInnerJoinSpliterator(Stream<L> left,
                                              Stream<R> right,
                                              Function<L, C> keyExtractorLeft,
                                              Function<R, C> keyExtractorRight,
                                              boolean isSorted) {
+            if (!isSorted) {
+                this.iterLeft = left.sorted().iterator();
+                this.iterRight = right.sorted().iterator();
+            } else {
+                this.iterLeft = left.iterator();
+                this.iterRight = right.iterator();
+            }
+            this.left = left;
+            this.right = right;
+            this.keyExtractorLeft = keyExtractorLeft;
+            this.keyExtractorRight = keyExtractorRight;
+            this.cLeft = iterLeft.next();
+            this.cRight = iterRight.next();
+            bufferLeft.add(cLeft);
+            bufferRight.add(cRight);
+            indLeft = 0;
+            indRight = 0;
+        }
+
+        private int compare() {
+            C left = keyExtractorLeft.apply(cLeft);
+            C right = keyExtractorRight.apply(cRight);
+            return left.compareTo(right);
+        }
+
+        private boolean advanceLeft() {
+            if (bufferLeft.size() > indLeft + 1) {
+                cLeft = bufferLeft.get(indLeft + 1);
+                indLeft++;
+            } else if (iterLeft.hasNext()) {
+                cLeft = iterLeft.next();
+                if (bufferLeft.size() > 10) {
+                    bufferLeft.remove(0);
+                    bufferLeft.add(cLeft);
+                } else {
+                    bufferLeft.add(cLeft);
+                    indLeft++;
+                }
+            } else {
+                return false;
+            } return true;
+        }
+
+        private boolean advanceRight() {
+            if (bufferRight.size() > indRight + 1) {
+                cRight = bufferRight.get(indRight + 1);
+                indRight++;
+            } else if (iterRight.hasNext()) {
+                cRight = iterRight.next();
+                if (bufferRight.size() > 10) {
+                    bufferRight.remove(0);
+                    bufferRight.add(cRight);
+                } else {
+                    bufferRight.add(cRight);
+                    indRight++;
+                }
+            } else {
+                return false;
+            } return true;
+        }
+
+        private boolean isLast() {
+            return !iterLeft.hasNext();
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super Pair<L, R>> action) {
-            return false;
+            if (iterLeft.hasNext() || iterRight.hasNext() || isLast()) {
+                if (mark == null) {
+                    while (compare() < 0){
+                        if (!advanceLeft()) {
+                            return false;
+                        }
+                    }
+                    mark = indRight;
+                }
+                if (compare() == 0) {
+                    action.accept(new Pair<>(bufferLeft.get(indLeft), bufferRight.get(indRight)));
+                    if (!advanceRight()) {
+                        return false;
+                    }
+                } else {
+                    indRight = mark;
+                    cRight = bufferRight.get(indRight);
+                    if (!advanceLeft()) {
+                        return false;
+                    } mark = null;
+                }
+            } else {
+                return false;
+            }
+            return true;
         }
 
         @Override
@@ -123,12 +219,12 @@ public class MergeSortJoinTest {
 
         @Override
         public long estimateSize() {
-            return 0;
+            return Long.MAX_VALUE;
         }
 
         @Override
         public int characteristics() {
-            return 0;
+            return ORDERED | IMMUTABLE;
         }
     }
 

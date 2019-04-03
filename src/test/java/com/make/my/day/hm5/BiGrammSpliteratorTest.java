@@ -10,8 +10,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BiGrammSpliteratorTest {
@@ -79,32 +78,58 @@ public class BiGrammSpliteratorTest {
         //ToDo: Write your own bi-gram spliterator
         //Todo: Should works in parallel
 
+        final String[] source;
+        int start = 0;
+        int end;
+        String delimeter;
+
         /**
          * Read about bi and n-grams https://en.wikipedia.org/wiki/N-gram.
          *
          * @param source
          */
         public BigrammSpliterator(List<String> source, String delimeter) {
+            this.source = source.stream().toArray(String[]::new);
+            this.end = this.source.length;
+            this.delimeter = delimeter;
+        }
+
+        private BigrammSpliterator(String[] source, int start, int end, String delimeter) {
+            this.source = source;
+            this.start = start;
+            this.end = end;
+            this.delimeter = delimeter;
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super String> action) {
-            return false;
+            if (start == end-1) {
+                return false;
+            }
+            action.accept(source[start] + delimeter + source[start + 1]);
+            start++;
+            return true;
         }
 
         @Override
         public BigrammSpliterator trySplit() {
+            if (end - start > 2) {
+                int middle = (start + end)/2;
+                BigrammSpliterator oneHalf = new BigrammSpliterator(source, start, middle, " ");
+                start = middle;
+                return oneHalf;
+            }
             return null;
         }
 
         @Override
         public long estimateSize() {
-            return 0;
+            return (long) end - start;
         }
 
         @Override
         public int characteristics() {
-            return 0;
+            return SIZED | IMMUTABLE | SUBSIZED | ORDERED;
         }
     }
 
